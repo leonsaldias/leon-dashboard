@@ -1,16 +1,507 @@
-<!Doctype html>
-<html>
-  <body>
-    <head>
-      <title>
-        Wellcome, Leon!
-      </title>
-    </head>
-    <h1>Wellcome, Leon</h1>
-    <n></n>
-    <h2>What would you like to do right now?</h2>    
-    <n></n>
-    <button id = "buttonForFile>Go to file manager!</button>
-    <button>Go to project manager!!</button>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Command Center — Personal Management</title>
+  <style>
+    :root {
+      --bg: #11161d;
+      --surface: #18202a;
+      --surface-hover: #1f2936;
+      --border: #2a3644;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --danger: #ef4444;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 1.5rem 1rem 3rem;
+    }
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+    header.topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h2 { margin: 0 0 0.15rem 0; font-size: 1.5rem; }
+    small { color: var(--muted); }
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+    }
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: 1px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 0.5rem 0.9rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: var(--primary-hover); }
+    button.secondary {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    button.secondary:hover { background: var(--surface-hover); }
+    button.outline {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    button.outline:hover { border-color: var(--primary); color: var(--primary); }
+    button.danger-outline {
+      background: transparent;
+      color: var(--danger);
+      border-color: var(--border);
+    }
+    button.danger-outline:hover { border-color: var(--danger); }
+    .small-btn { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+    .file-layout {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      gap: 1.25rem;
+    }
+    @media (max-width: 768px) {
+      .grid-3, .grid-2, .file-layout { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.15rem;
+      margin-bottom: 1.25rem;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      padding-bottom: 0.75rem;
+      margin-bottom: 0.9rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 0.85rem;
+      margin-top: 0.9rem;
+      border-top: 1px solid var(--border);
+    }
+    .stat-card { text-align: center; margin-bottom: 0; }
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--primary);
+    }
+    input[type="text"], select, textarea {
+      width: 100%;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.55rem 0.75rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+    input[type="text"]:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    textarea { resize: vertical; line-height: 1.5; }
+    input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; }
+    progress {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      appearance: none;
+    }
+    progress::-webkit-progress-bar { background: var(--bg); border-radius: 999px; }
+    progress::-webkit-progress-value { background: var(--primary); border-radius: 999px; }
+    .file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.55rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 0.4rem;
+      border: 1px solid transparent;
+    }
+    .file-item:hover, .file-item.selected {
+      background: var(--bg);
+      border-color: var(--primary);
+    }
+    .badge {
+      font-size: 0.72rem;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .project-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 0.75rem;
+    }
+    .project-meta { flex: 1; }
+    .add-project-bar {
+      display: grid;
+      grid-template-columns: 1fr 180px auto;
+      gap: 0.75rem;
+    }
+    @media (max-width: 640px) {
+      .add-project-bar { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="topbar">
+      <div>
+        <h2>Command Center</h2>
+        <small>Astra, magna fata et praemia leonibus</small>
+      </div>
+      <nav class="nav-tabs">
+        <button id="tab-main" onclick="switchView('main')">Main Page</button>
+        <button id="tab-files" class="secondary" onclick="switchView('files')">File Manager</button>
+        <button id="tab-projects" class="secondary" onclick="switchView('projects')">Project Tracker</button>
+      </nav>
+    </header>
+
+    <!-- 1. MAIN PAGE -->
+    <section id="view-main" class="view-section active">
+      <div class="grid-3">
+        <div class="card stat-card">
+          <p class="stat-number" id="stat-projects">0</p>
+          <small>Active Projects</small>
+        </div>
+        <div class="card stat-card">
+          <p class="stat-number" id="stat-avg-progress">0%</p>
+          <small>Overall Progress</small>
+        </div>
+        <div class="card stat-card">
+          <p class="stat-number" id="stat-files">0</p>
+          <small>Saved Notes &amp; Files</small>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><strong>Top Priority Projects</strong></div>
+          <div id="main-priority-list"></div>
+          <div class="card-footer">
+            <button class="outline small-btn" onclick="switchView('projects')">Open Project Tracker →</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><strong>Recent Files &amp; Notes</strong></div>
+          <div id="main-recent-files"></div>
+          <div class="card-footer">
+            <button class="outline small-btn" onclick="switchView('files')">Open File Manager →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. FILE MANAGER -->
+    <section id="view-files" class="view-section">
+      <div class="file-layout">
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-header">
+            <strong>Files</strong>
+            <button class="small-btn" onclick="createNewFile()">+ New</button>
+          </div>
+          <select id="folder-filter" onchange="renderFiles()" style="margin-bottom:0.85rem;">
+            <option value="ALL">All Folders</option>
+            <option value="School & IGCSE">School &amp; IGCSE</option>
+            <option value="Coding & Quant">Coding &amp; Quant</option>
+            <option value="Book & Writing">Book &amp; Writing</option>
+          </select>
+          <div id="file-list"></div>
+        </div>
+
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-header">
+            <input type="text" id="editor-title" placeholder="File title..." />
+            <select id="editor-folder" style="width:auto;">
+              <option value="School & IGCSE">School &amp; IGCSE</option>
+              <option value="Coding & Quant">Coding &amp; Quant</option>
+              <option value="Book & Writing">Book &amp; Writing</option>
+            </select>
+          </div>
+          <textarea id="editor-content" rows="13" placeholder="Write notes, formulas, code snippets, or drafts here..."></textarea>
+          <div class="card-footer">
+            <button class="danger-outline small-btn" onclick="deleteCurrentFile()">Delete File</button>
+            <button class="small-btn" onclick="saveCurrentFile()">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. PROJECT TRACKER -->
+    <section id="view-projects" class="view-section">
+      <div class="card">
+        <div class="card-header"><strong>Add New Project</strong></div>
+        <div class="add-project-bar">
+          <input type="text" id="proj-name" placeholder="Project name (e.g., Advent of Code Prep)" />
+          <select id="proj-category">
+            <option value="Coding">Coding</option>
+            <option value="School">School</option>
+            <option value="Book">Book</option>
+            <option value="Competitions">Competitions</option>
+          </select>
+          <button onclick="addProject()">Add Project</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><strong>Active Projects</strong></div>
+        <div id="project-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const defaultData = {
+      files: [
+        {
+          id: 1,
+          title: "University Does Not Call — Outline",
+          folder: "Book & Writing",
+          content: "Chapter 1: Why Age 13-16 Is Your Highest Leverage Window\nChapter 2: Choosing Subjects That Buy Optionality\nChapter 3: Building Real Assets Before University"
+        },
+        {
+          id: 2,
+          title: "IGCSE Extended Maths Formulas",
+          folder: "School & IGCSE",
+          content: "Quadratic Formula: x = (-b ± √(b² - 4ac)) / 2a\nDiscriminant: b² - 4ac = 0 (1 tangent solution)\nSine Rule: a / sin(A) = b / sin(B)"
+        },
+        {
+          id: 3,
+          title: "Quant Probability Notes",
+          folder: "Coding & Quant",
+          content: "Dice Reroll Game (1 reroll):\n- Expected value of Roll 2 = $3.50\n- Keep {4, 5, 6}, reroll {1, 2, 3}\n- Total Fair Value = $4.25"
+        }
+      ],
+      projects: [
+        { id: 101, name: "Personal Management Web App", category: "Coding", progress: 45 },
+        { id: 102, name: "University Does Not Call (Draft)", category: "Book", progress: 25 },
+        { id: 103, name: "Advent of Code / Python Algorithms", category: "Competitions", progress: 60 }
+      ]
+    };
+
+    let state = JSON.parse(localStorage.getItem("commandCenterData")) || defaultData;
+    let selectedFileId = state.files.length ? state.files[0].id : null;
+
+    function persist() {
+      localStorage.setItem("commandCenterData", JSON.stringify(state));
+      renderAll();
+    }
+
+    function switchView(view) {
+      ["main", "files", "projects"].forEach(v => {
+        document.getElementById("view-" + v).classList.toggle("active", v === view);
+        document.getElementById("tab-" + v).classList.toggle("secondary", v !== view);
+      });
+      renderAll();
+    }
+
+    function renderMain() {
+      document.getElementById("stat-projects").textContent = state.projects.length;
+      document.getElementById("stat-files").textContent = state.files.length;
+
+      const avg = state.projects.length
+        ? Math.round(state.projects.reduce((acc, p) => acc + Number(p.progress), 0) / state.projects.length)
+        : 0;
+      document.getElementById("stat-avg-progress").textContent = avg + "%";
+
+      const priorityContainer = document.getElementById("main-priority-list");
+      priorityContainer.innerHTML = state.projects.length
+        ? state.projects.slice(0, 3).map(p => `
+            <div style="margin-bottom:0.85rem;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
+                <span>${p.name}</span>
+                <strong>${p.progress}%</strong>
+              </div>
+              <progress value="${p.progress}" max="100"></progress>
+            </div>
+          `).join("")
+        : "<small>No projects yet.</small>";
+
+      const recentFilesContainer = document.getElementById("main-recent-files");
+      recentFilesContainer.innerHTML = state.files.length
+        ? state.files.slice(0, 4).map(f => `
+            <div class="file-item" onclick="openFileFromMain(${f.id})">
+              <span>${f.title}</span>
+              <span class="badge">${f.folder}</span>
+            </div>
+          `).join("")
+        : "<small>No files saved yet.</small>";
+    }
+
+    function openFileFromMain(id) {
+      selectedFileId = id;
+      switchView("files");
+    }
+
+    function renderFiles() {
+      const filter = document.getElementById("folder-filter").value;
+      const listEl = document.getElementById("file-list");
+      const filtered = filter === "ALL"
+        ? state.files
+        : state.files.filter(f => f.folder === filter);
+
+      listEl.innerHTML = filtered.map(f => `
+        <div class="file-item ${f.id === selectedFileId ? "selected" : ""}" onclick="selectFile(${f.id})">
+          <div>
+            <div style="font-weight:600; font-size:0.9rem;">${f.title}</div>
+            <small>${f.folder}</small>
+          </div>
+        </div>
+      `).join("");
+
+      const current = state.files.find(f => f.id === selectedFileId);
+      if (current) {
+        document.getElementById("editor-title").value = current.title;
+        document.getElementById("editor-folder").value = current.folder;
+        document.getElementById("editor-content").value = current.content;
+      } else {
+        document.getElementById("editor-title").value = "";
+        document.getElementById("editor-content").value = "";
+      }
+    }
+
+    function selectFile(id) {
+      selectedFileId = id;
+      renderFiles();
+    }
+
+    function createNewFile() {
+      const newFile = {
+        id: Date.now(),
+        title: "Untitled Note",
+        folder: "School & IGCSE",
+        content: ""
+      };
+      state.files.unshift(newFile);
+      selectedFileId = newFile.id;
+      persist();
+    }
+
+    function saveCurrentFile() {
+      const current = state.files.find(f => f.id === selectedFileId);
+      if (!current) return;
+      current.title = document.getElementById("editor-title").value.trim() || "Untitled Note";
+      current.folder = document.getElementById("editor-folder").value;
+      current.content = document.getElementById("editor-content").value;
+      persist();
+    }
+
+    function deleteCurrentFile() {
+      if (!selectedFileId) return;
+      state.files = state.files.filter(f => f.id !== selectedFileId);
+      selectedFileId = state.files.length ? state.files[0].id : null;
+      persist();
+    }
+
+    function renderProjects() {
+      const listEl = document.getElementById("project-list");
+      listEl.innerHTML = state.projects.length
+        ? state.projects.map(p => `
+            <div class="project-row">
+              <div class="project-meta">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                  <strong>${p.name} <span class="badge">${p.category}</span></strong>
+                  <span>${p.progress}%</span>
+                </div>
+                <input type="range" min="0" max="100" value="${p.progress}"
+                  oninput="updateProjectProgress(${p.id}, this.value)" />
+              </div>
+              <button class="danger-outline small-btn" onclick="deleteProject(${p.id})">✕</button>
+            </div>
+          `).join("")
+        : "<small>No active projects. Add one above!</small>";
+    }
+
+    function addProject() {
+      const nameInput = document.getElementById("proj-name");
+      const name = nameInput.value.trim();
+      if (!name) return;
+      const category = document.getElementById("proj-category").value;
+      state.projects.push({
+        id: Date.now(),
+        name,
+        category,
+        progress: 0
+      });
+      nameInput.value = "";
+      persist();
+    }
+
+    function updateProjectProgress(id, value) {
+      const proj = state.projects.find(p => p.id === id);
+      if (!proj) return;
+      proj.progress = Number(value);
+      persist();
+    }
+
+    function deleteProject(id) {
+      state.projects = state.projects.filter(p => p.id !== id);
+      persist();
+    }
+
+    function renderAll() {
+      renderMain();
+      renderFiles();
+      renderProjects();
+    }
+
+    renderAll();
+  </script>
+</body>
 </html>
